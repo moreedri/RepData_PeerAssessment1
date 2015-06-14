@@ -6,6 +6,8 @@ data <- read.csv(file = "activity.csv", as.is = TRUE)
 
 library(dplyr)
 library(lubridate)
+library(lattice)
+
 
 data$date <- ymd(data$date)
 
@@ -79,5 +81,16 @@ mean(perdiem$allsteps)
 
 ## task 4: Are there differences in activity patterns between weekdays and weekends?
 
+moredata <- data %>%
+  mutate(weekday = wday(date))
+moredata$weekday[moredata$weekday == 1] <- "weekend"
+moredata$weekday[moredata$weekday == 7] <- "weekend"
+moredata$weekday[nchar(moredata$weekday) == 1] <- "weekday"
+moredata$weekday <- as.factor(moredata$weekday)
 
+groupedperinterval <- moredata %>%
+  group_by(weekday, interval) %>%
+  summarise(steps = mean(steps, na.rm = TRUE)) 
+
+xyplot(steps ~ interval | weekday, data = groupedperinterval, type = "l")
 
