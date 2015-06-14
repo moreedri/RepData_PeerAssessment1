@@ -33,3 +33,20 @@ perinterval <- data %>%
   group_by(interval) %>%
   summarise(steps = mean(steps, na.rm = TRUE)) 
 
+plot(perinterval, type = "l")
+
+
+max(perinterval$steps)
+# [1] 206.1698
+perinterval$interval[max(perinterval$steps)]
+# [1] 1705
+
+
+
+
+## task 3: Imputing missing values
+
+
+
+
+
