@@ -8,18 +8,135 @@ output:
 
 ## Loading and preprocessing the data
 
+Data is available online, as given in the assignment.
+
+
+Code such as this, would be preferable:
+
+>
+> data <- fread("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip")
+>
+
+However, there are some unsolved memory-related issues with RStudio version 0.99.441, latest version for R version 3.2.0 (2015-04-16) on the x86_64-apple-darwin13.4.0 platform, which throws errors when attempting to unzip the data on the fly with read.csv, comparable to [documented issues](http://stackoverflow.com/questions/22643372/embedded-nul-in-string-error-when-importing-huge-csv-with-fread).
+
+
+Parsing and visuals require the packages dplyr, lubridate and lattice.
+
+
+
+```{r, echo=TRUE}
+require(dplyr)
+require(lubridate)
+require(lattice)
+
+data <- read.csv(file = "activity.csv", as.is = TRUE)
+data$date <- ymd(data$date)
+
+```
+
+
 
 
 ## What is mean total number of steps taken per day?
 
+```{r, echo=TRUE}
+perdiem <- data %>%
+  group_by(date) %>%
+  summarise(allsteps = sum(steps)) %>%
+  filter(allsteps > 0)
+
+hist(perdiem$allsteps)
+
+```
+
+The median number of steps taken per day is 
+```{r, echo=TRUE}
+median(perdiem$allsteps)
+```
+and the mean is 
+```{r, echo=TRUE}
+mean(perdiem$allsteps)
+```
+
+In these calculations, missing values have been ignored.
 
 
 ## What is the average daily activity pattern?
 
+```{r, echo=TRUE}
+perinterval <- data %>%
+  group_by(interval) %>%
+  summarise(steps = mean(steps, na.rm = TRUE)) 
+
+plot(perinterval, type = "l")
+
+```
+
+The 5 minute interval with most steps, is 
+```{r, echo=TRUE}
+perinterval$interval[max(perinterval$steps)]
+```
 
 
 ## Imputing missing values
 
+There are a number of days/intervals where there are missing values for the steps variable, coded as NA and ignored up till now.
+
+There are exactly 
+```{r, echo=TRUE}
+sum(is.na(data$steps))
+```
+missing measurements.
+
+We can fill the gaps with the mean for that 5-minute interval, as calculated earlier.
+
+```{r, echo=TRUE}
+newdata <- data %>%
+  filter(is.na(steps) == TRUE) %>%
+  select(date, interval)
+
+newdata <- inner_join(x = newdata, y = perinterval, by = "interval")
+
+data <- filter(data, is.na(steps) == FALSE)
+data <- rbind(data, newdata)
+
+perdiem <- data %>%
+  group_by(date) %>%
+  summarise(allsteps = sum(steps)) %>%
+  filter(allsteps > 0)
+
+hist(perdiem$allsteps)
+
+```
+
+The median number of steps taken per day is now identical to the mean, as an effect of manipulating the dataset:
+```{r, echo=TRUE}
+median(perdiem$allsteps)
+mean(perdiem$allsteps)
+```
+
+
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+One can expect differences between weekdays and weekends. This can be shown visually.
+
+```{r, echo=TRUE}
+
+moredata <- data %>%
+  mutate(weekday = wday(date))
+moredata$weekday[moredata$weekday == 1] <- "weekend"
+moredata$weekday[moredata$weekday == 7] <- "weekend"
+moredata$weekday[nchar(moredata$weekday) == 1] <- "weekday"
+moredata$weekday <- as.factor(moredata$weekday)
+
+groupedperinterval <- moredata %>%
+  group_by(weekday, interval) %>%
+  summarise(steps = mean(steps, na.rm = TRUE)) 
+
+xyplot(steps ~ interval | weekday, data = groupedperinterval, type = "l")
+
+```
+
+

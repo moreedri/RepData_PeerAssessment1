@@ -8,7 +8,6 @@ library(dplyr)
 library(lubridate)
 library(lattice)
 
-
 data$date <- ymd(data$date)
 
 
