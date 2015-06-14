@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
@@ -25,15 +20,31 @@ Parsing and visuals require the packages dplyr, lubridate and lattice.
 
 
 
-```{r, echo=TRUE}
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     filter
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 library(lubridate)
 library(lattice)
 
 setwd("/Users/drmoreel/GitRepo/RepData_PeerAssessment1/data/")
 data <- read.csv(file = "activity.csv", as.is = TRUE)
 data$date <- ymd(data$date)
-
 ```
 
 
@@ -41,23 +52,35 @@ data$date <- ymd(data$date)
 
 ## What is mean total number of steps taken per day?
 
-```{r, echo=TRUE}
+
+```r
 perdiem <- data %>%
   group_by(date) %>%
   summarise(allsteps = sum(steps)) %>%
   filter(allsteps > 0)
 
 hist(perdiem$allsteps)
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
 
 The median number of steps taken per day is 
-```{r, echo=TRUE}
+
+```r
 median(perdiem$allsteps)[1]
 ```
+
+```
+## [1] 10765
+```
 and the mean is 
-```{r, echo=TRUE}
+
+```r
 mean(perdiem$allsteps)[1]
+```
+
+```
+## [1] 10766.19
 ```
 
 In these calculations, missing values have been ignored.
@@ -65,18 +88,25 @@ In these calculations, missing values have been ignored.
 
 ## What is the average daily activity pattern?
 
-```{r, echo=TRUE}
+
+```r
 perinterval <- data %>%
   group_by(interval) %>%
   summarise(steps = mean(steps, na.rm = TRUE)) 
 
 plot(perinterval, type = "l")
-
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
 The 5 minute interval with most steps, is 
-```{r, echo=TRUE}
+
+```r
 perinterval$interval[max(perinterval$steps)]
+```
+
+```
+## [1] 1705
 ```
 
 
@@ -85,14 +115,20 @@ perinterval$interval[max(perinterval$steps)]
 There are a number of days/intervals where there are missing values for the steps variable, coded as NA and ignored up till now.
 
 There are exactly 
-```{r, echo=TRUE}
+
+```r
 sum(is.na(data$steps))[1]
+```
+
+```
+## [1] 2304
 ```
 missing measurements.
 
 We can fill the gaps with the mean for that 5-minute interval, as calculated earlier.
 
-```{r, echo=TRUE}
+
+```r
 # we need new data where data is missing
 newdata <- data %>%
   filter(is.na(steps) == TRUE) %>%
@@ -110,13 +146,26 @@ perdiem <- data %>%
   filter(allsteps > 0)
 
 hist(perdiem$allsteps)
-
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+
 The median number of steps taken per day is now identical to the mean, as an effect of manipulating the dataset:
-```{r, echo=TRUE}
+
+```r
 median(perdiem$allsteps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 mean(perdiem$allsteps)
+```
+
+```
+## [1] 10766.19
 ```
 
 
@@ -126,8 +175,8 @@ mean(perdiem$allsteps)
 
 One can expect differences between weekdays and weekends. This can be shown visually.
 
-```{r, echo=TRUE}
 
+```r
 # we expand the dataset with a numeral for the day of the week
 # 1 = Sunday
 moredata <- data %>%
@@ -144,7 +193,8 @@ groupedperinterval <- moredata %>%
   summarise(steps = mean(steps, na.rm = TRUE)) 
 
 xyplot(steps ~ interval | weekday, data = groupedperinterval, type = "l")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
 
 
