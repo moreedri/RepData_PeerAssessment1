@@ -46,7 +46,38 @@ perinterval$interval[max(perinterval$steps)]
 
 ## task 3: Imputing missing values
 
+dim(data)
+# [1] 17568     3
+sum(is.na(data$steps))
+# [1] 2304
 
+# fill the NA's with the mean for that 5-minute interval
+
+newdata <- data %>%
+  filter(is.na(steps) == TRUE) %>%
+  select(date, interval)
+
+newdata <- inner_join(x = newdata, y = perinterval, by = "interval")
+
+data <- filter(data, is.na(steps) == FALSE)
+data <- rbind(data, newdata)
+
+# verify operation on dataset
+sum(is.na(data$steps))
+# [1] 0
+dim(data)
+# [1] 17568     3
+
+# verify changed summary
+# first recalculate perdiem with newdata included
+median(perdiem$allsteps)
+# [1] 10766.19
+mean(perdiem$allsteps)
+# [1] 10766.19
+
+
+
+## task 4: Are there differences in activity patterns between weekdays and weekends?
 
 
 
